@@ -1,0 +1,66 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:     yarad
+# Required-Start:  $network $remote_fs $syslog
+# Required-Stop:   $network $remote_fs $syslog
+# Default-Start:   2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start YaRad daemon
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+. /lib/lsb/init-functions
+
+NAME=yarad
+export DAEMON=/place/yarad/yarad.py
+export DAEMON_CONF="/place/yarad/conf/yarad.cfg"
+export LOG_FILE="/place/yarad/yarad.log"
+export DAEMON_OPTS="-c ${DAEMON_CONF} > /place/yarad/yarad.log 2>&1"
+export PIDFILE=/var/run/yarad.pid
+
+test -x $DAEMON || exit 5
+
+if [ -r /etc/default/$NAME ]; then
+        . /etc/default/$NAME
+fi
+
+RUNASUSER=yarad
+UGID=$(getent passwd $RUNASUSER | cut -f 3,4 -d:) || true
+
+case $1 in
+        start)
+                log_daemon_msg "Starting YaRad" "yarad"
+                if [ -z "$UGID" ]; then
+                        log_failure_msg "user \"$RUNASUSER\" does not exist"
+                        exit 1
+                fi
+                start-stop-daemon --start --quiet --oknodo --pidfile $PIDFILE --chuid $UGID --startas $DAEMON -- $DAEMON_OPTS
+                log_end_msg $?
+                ;;
+        stop)
+                log_daemon_msg "Stopping YaRad" "yamod"
+                start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+                log_end_msg $?
+                rm -f $PIDFILE
+                ;;
+        status)
+                pidofproc -p $PIDFILE $DAEMON >/dev/null
+                status=$?
+                if [ $status -eq 0 ]; then
+                        log_success_msg "YaRad is running."
+                else
+                        log_failure_msg "YaRad is not running."
+                fi
+                exit $status
+                ;;
+        restart|force-reload)
+                $0 stop && sleep 2 && $0 start
+                ;;
+        *)
+                echo "Usage: $0 {start|stop|restart|force-reload|status}"
+                exit 2
+                ;;
+esac
+
