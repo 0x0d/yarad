@@ -10,14 +10,7 @@ import hashlib
 from log import *
 
 WHITELIST = (
-	'213.180.192.0/19',
-	'87.250.224.0/19',
-	'77.88.0.0/18',
-	'93.158.128.0/18',
-	'95.108.128.0/17',
-	'178.154.128.0/17',
-	'199.36.240.0/22',
-	'77.75.152.0/21'
+	'127.0.0.1/21'
 )
 
 APNLIST = (
@@ -26,12 +19,12 @@ APNLIST = (
 )
 
 ldap_servers = [
-	('pretty.yandex.ru', 0.5), 
-	('lucky.yandex.ru', 0.25), 
-	('kind.yandex.ru', 0.25)
+	('pretty.0x0a.net', 0.5), 
+	('lucky.0x0a.net', 0.25), 
+	('kind.0x0a.net', 0.25)
 ]
 
-otp_host = "otp-dev.yandex.ru"
+otp_host = "otp.0x0a.net"
 
 def ip_in_list(request_ip, list):
 	user_ip = IPv4Address(request_ip)
@@ -55,7 +48,7 @@ def w_choice(lst):
 def ldap_auth(username, password):
 
 	host = w_choice(ldap_servers)
-	username = "%s@ld.yandex.ru" % (username)
+	username = "%s@0x0a.net" % (username)
 	try:
 		l = ldap.open(host)
 		l.set_option(ldap.OPT_NETWORK_TIMEOUT, 1)
@@ -162,9 +155,9 @@ class Logic:
 
 		self.logger.info("Trying to make auth as: %s/%s" % (username, password))
 
-		user_ip = getParameter('Yandex-User-IP', pkt)
+		user_ip = getParameter('Test-User-IP', pkt)
 		if not user_ip:
-			self.logger.error("Error! Packet does not have Yandex-User-IP attribute")
+			self.logger.error("Error! Packet does not have Test-User-IP attribute")
 			return False
 
                 allowed_ip = ip_in_list(user_ip, WHITELIST)
@@ -173,7 +166,7 @@ class Logic:
 		else:
 			self.logger.info("%s it is external IP" % (user_ip))
 
-                retval = {'Yandex-External-IP': int(not allowed_ip)}
+                retval = {'Test-External-IP': int(not allowed_ip)}
 
 		if self.memcache_enable:
 			mckey = "%s%s" % (username, user_ip)
@@ -185,13 +178,13 @@ class Logic:
 			else:
 				self.logger.info("Memcache auth failed, continuing")
 
-		service_name = getParameter('Yandex-Service', pkt)
+		service_name = getParameter('Test-Service', pkt)
 		if service_name:
-			if service_name == 'Yandex.Mail' or service_name == 'web':
+			if service_name == 'Test.Mail' or service_name == 'web':
 				if not allowed_ip:
 					self.logger.info("Choosing OTP auth")
 					result = otp_auth(username, password, self.db)
-			elif service_name == 'Yandex.CalDAV' or service_name == 'caldav' or service_name == 'xmpp':
+			elif service_name == 'Test.CalDAV' or service_name == 'caldav' or service_name == 'xmpp':
 				self.logger.info("Choosing Long auth")
 				if self.database_enable:
 					result = long_auth(username, password, self.db)
@@ -200,7 +193,7 @@ class Logic:
 			else:
 				self.logger.warn("Warning! Packet has unknown service name: %s" % (service_name))
 		else:
-			self.logger.warn("Warning! Packet does not have Yandex-Service parameter")
+			self.logger.warn("Warning! Packet does not have Test-Service parameter")
 
 		if not result and allowed_ip:
 			self.logger.info("Choosing LDAP auth")

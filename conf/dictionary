@@ -38,19 +38,19 @@
 #
 
 #
-#	Yandex vendor
+#	Test vendor
 #
 
-VENDOR          Yandex                      30700
+VENDOR          Test                      30700
 
-BEGIN-VENDOR    Yandex
+BEGIN-VENDOR    Test
 
-ATTRIBUTE       Yandex-User-IP      1       string
-ATTRIBUTE       Yandex-Service          2       string
-ATTRIBUTE       Yandex-External-IP 3 integer
+ATTRIBUTE       Test-User-IP      1       string
+ATTRIBUTE       Test-Service          2       string
+ATTRIBUTE       Test-External-IP 3 integer
 
 
-END-VENDOR      Yandex
+END-VENDOR      Test
 
 #
 #	Following are the proper new names. Use these.
